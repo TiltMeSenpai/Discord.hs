@@ -1,15 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
-module Network.Discord.Gateway where 
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, RankNTypes #-}
+module Network.Discord.Gateway where
   import System.Info
-  import Control.Monad (mzero)
+  import Control.Monad (forever)
+  import Control.Monad.State (StateT, evalStateT)
 
+  import Wuss
   import Data.Aeson
   import Data.Aeson.Types
   import Network.WebSockets
+  import Network.URL
+  import Pipes
 
   import Network.Discord.Types
 
-  type Auth = String
   data Payload = Dispatch
     Object
     Integer
@@ -62,7 +65,7 @@ module Network.Discord.Gateway where
     toJSON (Identify token compress large shard) = object [
         "op" .= (2 :: Int)
       , "d"  .= object [
-          "token" .= token 
+          "token" .= token
         , "properties" .= object [
             "$os"                .= os
           , "$browser"           .= ("discord.hs" :: String)
@@ -117,3 +120,15 @@ module Network.Discord.Gateway where
         Left  reason  -> ParseError reason
     toLazyByteString   = encode
 
+  makeWebsocketSource :: (WebSocketsData a, MonadIO m)
+    => Connection -> Producer a m ()
+  makeWebsocketSource conn = forever $ do
+    msg <- lift . liftIO $ receiveData conn
+    yield msg
+
+  runWebsocket :: (Client c)
+    => URL -> c -> Effect (StateT (DiscordState c) IO) a -> IO a
+  runWebsocket (URL (Absolute h) path _) client inner =
+    runSecureClient (host h) 443 (path++"/?v=6")
+      $ \conn -> evalStateT (runEffect inner) (DiscordState Create client conn)
+  runWebsocket _ _ _ = mzero
