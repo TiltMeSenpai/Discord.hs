@@ -1,22 +1,26 @@
 {-# LANGUAGE RankNTypes, ExistentialQuantification #-}
 module Network.Discord.Types
   ( module Network.Discord.Types
-  , module Network.Discord.Types.Json
+  , module Re
   ) where
 
-  import Network.WebSockets (Connection)
+    import Control.Concurrent.STM
+    import Network.WebSockets (Connection)
 
-  import Network.Discord.Types.Json
+    import Network.Discord.Types.Json as Re
+    import Network.Discord.Types.Events as Re
+    import Network.Discord.Types.Gateway as Re
 
-  type Auth = String
+    type Auth = String
 
-  class Client c where
-    getAuth :: Client c => c -> Auth
+    class Client c where
+      getAuth :: Client c => c -> Auth
 
-  data StateEnum = Create | Start | Ready | InvalidReconnect | InvalidDead
+    data StateEnum = Create | Start | Running | InvalidReconnect | InvalidDead
 
-  data DiscordState a = Client a => DiscordState {
-    getState     :: StateEnum,
-    getClient    :: a,
-    getWebSocket :: Connection
-  }
+    data DiscordState a = Client a => DiscordState {
+        getState       :: StateEnum
+      , getClient      :: a
+      , getWebSocket   :: Connection
+      , getSequenceNum :: TMVar Integer
+      }

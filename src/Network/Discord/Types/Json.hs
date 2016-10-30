@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.Discord.Types.Json where
-  import Data.Time.Clock
-  import Data.Aeson
+
   import Data.Foldable
   import Control.Monad (mzero)
+
+  import Data.Time.Clock
+  import Data.Aeson
+  import Data.Aeson.Types
 
   type Snowflake = String
 
@@ -11,7 +14,7 @@ module Network.Discord.Types.Json where
     Snowflake
     String
     String
-    String
+    (Maybe String)
     Bool
     (Maybe Bool)
     (Maybe Bool)
@@ -23,7 +26,7 @@ module Network.Discord.Types.Json where
       User <$> o .:  "id"
            <*> o .:  "username"
            <*> o .:  "discriminator"
-           <*> o .:  "avatar"
+           <*> o .:? "avatar"
            <*> o .:? "bot" .!= False
            <*> o .:? "mfa_enabled"
            <*> o .:? "verified"
@@ -198,6 +201,7 @@ module Network.Discord.Types.Json where
 
   data Member = GuildMember Snowflake User
               | MemberShort User (Maybe String) [Snowflake]
+              deriving Show
   instance FromJSON Member where
     parseJSON (Object o) =
       GuildMember <$> o .: "guild_id" <*> o .: "user"
@@ -205,6 +209,14 @@ module Network.Discord.Types.Json where
 
   data Guild =
       Guild Snowflake
+      deriving Show
   instance FromJSON Guild where
     parseJSON (Object o) = Guild <$> o .: "id"
     parseJSON _          = mzero
+
+  justRight :: Either String a -> a
+  justRight (Right a) = a
+  justRight (Left reason) = error reason
+
+  reparse :: (FromJSON a) => Value -> a
+  reparse o = justRight $ parseEither parseJSON o
