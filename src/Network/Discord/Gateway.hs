@@ -25,7 +25,7 @@ module Network.Discord.Gateway where
   runWebsocket (URL (Absolute h) path _) client inner =
     runSecureClient (host h) 443 (path++"/?v=6")
       $ \conn -> evalStateT (runEffect inner)
-        (DiscordState Create client conn undefined)
+        (DiscordState Create client conn undefined [])
   runWebsocket _ _ _ = mzero
 
   heartbeat :: Int -> Connection -> TMVar Integer -> IO ()
@@ -72,5 +72,6 @@ module Network.Discord.Gateway where
       InvalidReconnect -> put st {getState=InvalidDead}
       InvalidDead      -> liftIO $ putStrLn "Bot died"
 
-  eventCore :: (Client c) => Connection -> Producer Event (StateT (DiscordState c) IO) ()
+  eventCore :: (Client c) =>
+    Connection -> Producer Event (StateT (DiscordState c) IO) ()
   eventCore conn = makeWebsocketSource conn >-> makeEvents

@@ -23,4 +23,5 @@ module Network.Discord.Types
       , getClient      :: a
       , getWebSocket   :: Connection
       , getSequenceNum :: TMVar Integer
+      , getRateLimits  :: [(String, Integer)]
       }
