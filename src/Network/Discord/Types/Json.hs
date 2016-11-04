@@ -8,7 +8,7 @@ module Network.Discord.Types.Json where
   import Data.Aeson
   import Data.Aeson.Types
 
-  type Snowflake = String
+  import Network.Discord.Types.Prelude
 
   data User = User
     Snowflake
@@ -213,10 +213,6 @@ module Network.Discord.Types.Json where
   instance FromJSON Guild where
     parseJSON (Object o) = Guild <$> o .: "id"
     parseJSON _          = mzero
-
-  justRight :: Either String a -> a
-  justRight (Right a) = a
-  justRight (Left reason) = error reason
 
   reparse :: (FromJSON a) => Value -> a
   reparse o = justRight $ parseEither parseJSON o

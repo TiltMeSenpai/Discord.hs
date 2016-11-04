@@ -7,7 +7,7 @@ module Network.Discord.Types.Gateway where
   import Data.Aeson.Types
   import Network.WebSockets
 
-  import Network.Discord.Types.Global
+  import Network.Discord.Types.Prelude
 
   data Payload = Dispatch
     Object
