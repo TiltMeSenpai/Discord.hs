@@ -1,34 +1,44 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts, RankNTypes #-}
 {-# OPTIONS_HADDOCK prune, not-home #-}
+-- | Provides logic code for interacting with the Discord websocket
+--   gateway. Reallistically, this is probably lower level than most
+--   people will need, and you should use Language.Discord.
 module Network.Discord.Gateway where
   import Control.Concurrent (forkIO, threadDelay)
   import Control.Monad.State
-  import System.Mem
+  import Data.ByteString.Lazy.Char8 (unpack)
 
-  import Wuss
+  import Control.Concurrent.STM
   import Data.Aeson
   import Data.Aeson.Types
   import Network.WebSockets
   import Network.URL
-  import Control.Concurrent.STM
   import Pipes
+  import System.Log.Logger
+  import Wuss
 
   import Network.Discord.Types
 
-
-  makeWebsocketSource :: (WebSocketsData a, MonadIO m)
+  -- | Turn a websocket Connection into a Pipes Producer
+  --   (data source)
+  makeWebsocketSource :: (FromJSON a, MonadIO m)
     => Connection -> Producer a m ()
   makeWebsocketSource conn = forever $ do
-    msg <- lift . liftIO $ receiveData conn
-    yield msg
+    msg' <- lift . liftIO $ receiveData conn
+    case eitherDecode msg' of
+      Right msg -> yield $ msg
+      Left  err -> liftIO $
+        errorM "Discord-hs.Gateway.Parse" err
+          >> infoM "Discord-hs.Gateway.Raw" (unpack msg')
 
   -- | Starts a websocket connection that allows you to handle Discord events.
   runWebsocket :: (Client c)
     => URL -> c -> Effect DiscordM a -> IO a
-  runWebsocket (URL (Absolute h) path _) client inner =
+  runWebsocket (URL (Absolute h) path _) client inner = do
+    rl <- newTVarIO []
     runSecureClient (host h) 443 (path++"/?v=6")
-      $ \conn -> evalStateT (runEffect inner)
-        (DiscordState Create client conn undefined [])
+      $ \conn -> evalDiscordM (runEffect inner)
+        (DiscordState Create client conn undefined rl)
   runWebsocket _ _ _ = mzero
 
   -- | Spawn a heartbeat thread
@@ -37,8 +47,9 @@ module Network.Discord.Gateway where
     seqNum <- atomically $ readTMVar sq
     sendTextData conn $ Heartbeat seqNum
     threadDelay $ interval * 1000
-    performGC
-
+  
+  -- | Turn a websocket data source into an 'Event' data
+  --   source
   makeEvents :: Pipe Payload Event DiscordM a
   makeEvents = forever $ do
     st@(DiscordState dState client ws _ _) <- get
@@ -54,8 +65,8 @@ module Network.Discord.Gateway where
         Dispatch o sq "READY" <- await
         liftIO . atomically $ putTMVar (getSequenceNum st) sq
         case parseEither parseJSON $ Object o of
-          Right a -> yield $ Ready a
-          Left reason -> liftIO $ putStrLn reason
+          Right a     -> yield  $ Ready a
+          Left reason -> liftIO $ errorM "Discord-hs.Gateway.Dispatch" reason
         put st {getState=Running}
       Running          -> do
         pl <- await
@@ -63,19 +74,24 @@ module Network.Discord.Gateway where
           Dispatch _ sq _ -> do
             liftIO . atomically $ tryTakeTMVar (getSequenceNum st)
               >> putTMVar (getSequenceNum st) sq
-            yield $ parseDispatch pl
+            case parseDispatch pl of
+              Left reason   -> liftIO $ errorM "Discord-hs.Gateway.Dispatch" reason
+              Right payload -> yield payload
           Heartbeat sq    -> do
             liftIO . atomically $ tryTakeTMVar (getSequenceNum st)
               >> putTMVar (getSequenceNum st) sq
             liftIO . sendTextData ws $ Heartbeat sq
           Reconnect       -> put st {getState=InvalidReconnect}
           InvalidSession  -> put st {getState=Start}
-          HeartbeatAck    -> liftIO $ putStrLn "Heartbeat Ack"
+          HeartbeatAck    -> liftIO $ infoM "Discord-hs.Gateway.Heartbeat" "HeartbeatAck"
           _               -> do
-            liftIO $ putStrLn "Invalid Packet"
+            liftIO $ errorM "Discord-hs.Gateway.Error" "InvalidPacket"
             put st {getState=InvalidDead}
       InvalidReconnect -> put st {getState=InvalidDead}
-      InvalidDead      -> liftIO $ putStrLn "Bot died"
-
+      InvalidDead      -> liftIO $ errorM "Discord-hs.Gateway.Error" "BotDied"
+  
+  -- | Utility function providing core functionality by converting a Websocket
+  --   'Connection' to a stream of gateway 'Event's
   eventCore :: Connection -> Producer Event DiscordM ()
   eventCore conn = makeWebsocketSource conn >-> makeEvents
+
