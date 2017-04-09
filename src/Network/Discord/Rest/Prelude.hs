@@ -4,7 +4,8 @@
 -- | Utility and base types and functions for the Discord Rest API
 module Network.Discord.Rest.Prelude where
   import Control.Concurrent (threadDelay)
- 
+
+  import Control.Comonad
   import Control.Concurrent.STM
   import Data.Aeson
   import Data.Default
@@ -55,7 +56,7 @@ module Network.Discord.Rest.Prelude where
             threadDelay $ 1000000 * (a - now)
             putStrLn "Done"
           return ()
-  
+
   -- | Class over which performing a data retrieval action is defined
   class DoFetch a where
     doFetch :: a -> DiscordM Fetched
@@ -74,16 +75,23 @@ module Network.Discord.Rest.Prelude where
 
   -- | Result of a data retrieval action
   data Fetched = forall a. (FromJSON a) => SyncFetched a
-  
+
+  instance Functor Fetched where
+    fmap f (SyncFetched a) = SyncFetched (f a)
+
+  instance Comonad Fetched where
+    extend = (SyncFetched .)
+    extract (SyncFetched a) = a
+
   -- | Represents a range of 'Snowflake's
   data Range = Range { after :: Snowflake, before :: Snowflake, limit :: Int}
 
   instance Default Range where
     def = Range 0 18446744073709551615 100
-  
+
   -- | Convert a Range to a query string
   toQueryString :: Range -> Option 'Https
   toQueryString (Range a b l)
-    =  "after"  =: show a 
-    <> "before" =: show b 
+    =  "after"  =: show a
+    <> "before" =: show b
     <> "limit"  =: show l
