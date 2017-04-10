@@ -1,5 +1,5 @@
 name:                discord-hs
-version:             0.2.2
+version:             0.3.2
 synopsis:            An API wrapper for Discord in Haskell
 description:         Provides an api wrapper and framework for writing
                      bots against the Discord <https://discordapp.com/> API.
