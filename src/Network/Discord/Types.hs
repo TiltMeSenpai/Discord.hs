@@ -41,11 +41,11 @@ module Network.Discord.Types
     -- | Convenience type alias for the monad most used throughout most Discord.hs operations
     newtype DiscordM a = DiscordM (StateT DiscordState IO a)
       deriving (MonadIO, MonadState DiscordState, Monad, Applicative, Functor)
-   
+
     -- | Allow HTTP requests to be made from the DiscordM monad
     instance R.MonadHttp DiscordM where
       handleHttpException e = error $ show e
-    
+
     -- | Unwrap and eval a 'DiscordM'
     evalDiscordM :: DiscordM a -> DiscordState -> IO a
     evalDiscordM (DiscordM inner) = evalStateT inner
@@ -53,7 +53,7 @@ module Network.Discord.Types
     -- | Unwrap and exec a 'DiscordM'
     execDiscordM :: DiscordM a -> DiscordState -> IO DiscordState
     execDiscordM (DiscordM inner) = execStateT inner
-    
+
     -- | The Client typeclass holds the majority of the user-customizable state,
     --   including merging states resulting from async operations.
     class Client c where
@@ -76,19 +76,19 @@ module Network.Discord.Types
       getTMClient = unsafePerformIO $ newTVarIO undefined
       {-# NOINLINE getTMClient #-}
 
-      -- | In some cases, state locks are needed to prevent race conditions or 
+      -- | In some cases, state locks are needed to prevent race conditions or
       --   TVars are an unwanted solution. In these cases, both getClient and
       --   modifyClient should be implemented.
       getSTMClient :: Proxy c  -- ^ Type witness for the client
         -> STM c
       getSTMClient _ = readTVar getTMClient
-      
+
       -- | modifyClient is used by mergeClient to merge application states before
       --   and after an event handler is run
       {-# NOINLINE getSTMClient #-}
       modifyClient :: (c -> c) -> STM ()
       modifyClient f = modifyTVar getTMClient f
-      
+
       -- | Merges application states before and after an event handler
       mergeClient :: c -> STM ()
       mergeClient client = modifyClient $ merge client

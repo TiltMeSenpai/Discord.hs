@@ -5,7 +5,7 @@ module Network.Discord.Rest.Channel
   (
     ChannelRequest(..)
   ) where
-   
+
     import Data.Aeson
     import Data.ByteString.Lazy
     import Data.Hashable
@@ -14,7 +14,7 @@ module Network.Discord.Rest.Channel
     import Network.HTTP.Client (RequestBody (..))
     import Network.HTTP.Client.MultipartFormData (partFileRequestBody)
     import Network.HTTP.Req (reqBodyMultipart)
-    
+
     import Network.Discord.Rest.Prelude
     import Network.Discord.Types
     import Network.Discord.Rest.HTTP

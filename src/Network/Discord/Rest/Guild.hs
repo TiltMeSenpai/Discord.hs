@@ -5,18 +5,18 @@ module Network.Discord.Rest.Guild
   (
     GuildRequest(..)
   ) where
-    
+
     import Data.Aeson
     import Data.Hashable
     import Data.Monoid (mempty)
     import Data.Text as T
     import Network.HTTP.Req ((=:))
-    
+
     import Network.Discord.Rest.Prelude
     import Network.Discord.Types
     import Network.Discord.Rest.HTTP
 
-    -- | Data constructor for Guild requests. See 
+    -- | Data constructor for Guild requests. See
     --   <https://discordapp.com/developers/docs/resources/guild Guild API>
     data GuildRequest a where
       -- | Returns the new 'Guild' object for the given id
@@ -28,11 +28,11 @@ module Network.Discord.Rest.Guild
       DeleteGuild              :: Snowflake -> GuildRequest Guild
       -- | Returns a list of guild 'Channel' objects
       GetGuildChannels         :: Snowflake -> GuildRequest [Channel]
-      -- | Create a new 'Channel' object for the guild. Requires 'MANAGE_CHANNELS' 
+      -- | Create a new 'Channel' object for the guild. Requires 'MANAGE_CHANNELS'
       --   permission. Returns the new 'Channel' object on success. Fires a Channel Create
       --   'Event'
       CreateGuildChannel       :: ToJSON a => Snowflake -> a -> GuildRequest Channel
-      -- | Modify the positions of a set of channel objects for the guild. Requires 
+      -- | Modify the positions of a set of channel objects for the guild. Requires
       --   'MANAGE_CHANNELS' permission. Returns a list of all of the guild's 'Channel'
       --   objects on success. Fires multiple Channel Update 'Event's.
       ModifyChanPosition       :: ToJSON a => Snowflake -> a -> GuildRequest [Channel]
@@ -42,12 +42,12 @@ module Network.Discord.Rest.Guild
       ListGuildMembers         :: Snowflake -> Range -> GuildRequest [Member]
       -- | Adds a user to the guild, provided you have a valid oauth2 access token
       --   for the user with the guilds.join scope. Returns the guild 'Member' as the body.
-      --   Fires a Guild Member Add 'Event'. Requires the bot to have the 
+      --   Fires a Guild Member Add 'Event'. Requires the bot to have the
       --   CREATE_INSTANT_INVITE permission.
-      AddGuildMember           :: ToJSON a => Snowflake -> Snowflake -> a 
+      AddGuildMember           :: ToJSON a => Snowflake -> Snowflake -> a
                                     -> GuildRequest Member
       -- | Modify attributes of a guild 'Member'. Fires a Guild Member Update 'Event'.
-      ModifyGuildMember        :: ToJSON a => Snowflake -> Snowflake -> a 
+      ModifyGuildMember        :: ToJSON a => Snowflake -> Snowflake -> a
                                     -> GuildRequest ()
       -- | Remove a member from a guild. Requires 'KICK_MEMBER' permission. Fires a
       --   Guild Member Remove 'Event'.
@@ -58,7 +58,7 @@ module Network.Discord.Rest.Guild
       -- | Create a guild ban, and optionally Delete previous messages sent by the banned
       --   user. Requires the 'BAN_MEMBERS' permission. Fires a Guild Ban Add 'Event'.
       CreateGuildBan           :: Snowflake -> Snowflake -> Integer -> GuildRequest ()
-      -- | Remove the ban for a user. Requires the 'BAN_MEMBERS' permissions. 
+      -- | Remove the ban for a user. Requires the 'BAN_MEMBERS' permissions.
       --   Fires a Guild Ban Remove 'Event'.
       RemoveGuildBan           :: Snowflake -> Snowflake -> GuildRequest ()
       -- | Returns a list of 'Role' objects for the guild. Requires the 'MANAGE_ROLES'
@@ -67,19 +67,19 @@ module Network.Discord.Rest.Guild
       -- | Create a new 'Role' for the guild. Requires the 'MANAGE_ROLES' permission.
       --   Returns the new role object on success. Fires a Guild Role Create 'Event'.
       CreateGuildRole          :: Snowflake -> GuildRequest Role
-      -- | Modify the positions of a set of role objects for the guild. Requires the 
+      -- | Modify the positions of a set of role objects for the guild. Requires the
       --   'MANAGE_ROLES' permission. Returns a list of all of the guild's 'Role' objects
       --   on success. Fires multiple Guild Role Update 'Event's.
       ModifyGuildRolePositions :: ToJSON a => Snowflake -> [a] -> GuildRequest [Role]
-      -- | Modify a guild role. Requires the 'MANAGE_ROLES' permission. Returns the 
+      -- | Modify a guild role. Requires the 'MANAGE_ROLES' permission. Returns the
       --   updated 'Role' on success. Fires a Guild Role Update 'Event's.
-      ModifyGuildRole          :: ToJSON a => Snowflake -> Snowflake -> a 
+      ModifyGuildRole          :: ToJSON a => Snowflake -> Snowflake -> a
                                     -> GuildRequest Role
       -- | Delete a guild role. Requires the 'MANAGE_ROLES' permission. Fires a Guild Role
       --   Delete 'Event'.
       DeleteGuildRole          :: Snowflake -> Snowflake -> GuildRequest Role
-      -- | Returns an object with one 'pruned' key indicating the number of members 
-      --   that would be removed in a prune operation. Requires the 'KICK_MEMBERS' 
+      -- | Returns an object with one 'pruned' key indicating the number of members
+      --   that would be removed in a prune operation. Requires the 'KICK_MEMBERS'
       --   permission.
       GetGuildPruneCount       :: Snowflake -> Integer -> GuildRequest Object
       -- | Begin a prune operation. Requires the 'KICK_MEMBERS' permission. Returns an
@@ -101,7 +101,7 @@ module Network.Discord.Rest.Guild
       -- | Modify the behavior and settings of a 'Integration' object for the guild.
       --   Requires the 'MANAGE_GUILD' permission. Fires a Guild Integrations Update 'Event'.
       ModifyGuildIntegration   :: ToJSON a => Snowflake -> Snowflake -> a -> GuildRequest ()
-      -- | Delete the attached 'Integration' object for the guild. Requires the 
+      -- | Delete the attached 'Integration' object for the guild. Requires the
       --   'MANAGE_GUILD' permission. Fires a Guild Integrations Update 'Event'.
       DeleteGuildIntegration   :: Snowflake -> Snowflake -> GuildRequest ()
       -- | Sync an 'Integration'. Requires the 'MANAGE_GUILD' permission.
@@ -202,7 +202,7 @@ module Network.Discord.Rest.Guild
           go r@(GetGuildPruneCount guild days) = makeRequest r
             $ Get (url // guild /: "prune") ("days" =: days)
           go r@(BeginGuildPrune guild days) = makeRequest r
-            $ Post (url // guild /: "prune") 
+            $ Post (url // guild /: "prune")
               NoReqBody ("days" =: days)
           go r@(GetGuildVoiceRegions guild) = makeRequest r
             $ Get (url // guild /: "regions") mempty

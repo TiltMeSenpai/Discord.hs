@@ -44,7 +44,7 @@ module Network.Discord.Rest.HTTP
     url // part = url R./: (T.pack $ show part)
 
     type Option = R.Option 'R.Https
-   
+
     -- | Represtents a HTTP request made to an API that supplies a Json response
     data JsonRequest r where
       Delete ::  FromJSON r                => R.Url 'R.Https      -> Option -> JsonRequest r
@@ -70,7 +70,7 @@ module Network.Discord.Rest.HTTP
       where
         parseHeader :: R.HttpResponse resp => resp -> ByteString -> Int -> Int
         parseHeader resp header def = fromMaybe def $ decodeStrict =<< R.responseHeader resp header
-    
+
     -- | Base implementation of DoFetch, allows arbitrary HTTP requests to be performed
     instance (FromJSON r) => DoFetch (JsonRequest r) where
       doFetch req = SyncFetched . R.responseBody <$> fetch req

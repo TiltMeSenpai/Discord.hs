@@ -1,4 +1,4 @@
--- | Provides core Discord functionallity. 
+-- | Provides core Discord functionallity.
 module Network.Discord
   ( module Network.Discord.Framework
   , module Network.Discord.Rest
