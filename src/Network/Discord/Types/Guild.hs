@@ -22,7 +22,7 @@ module Network.Discord.Types.Guild where
   -- | Guilds in Discord represent a collection of users and channels into an isolated
   --   "Server"
   data Guild
-    = Guild 
+    = Guild
         { guildId           :: {-# UNPACK #-} !Snowflake -- ^ Gulid id
         , guildName         ::                 String    -- ^ Guild name (2 - 100 chars)
         , guildIcon         ::                 String    -- ^ Icon hash
@@ -38,7 +38,7 @@ module Network.Discord.Types.Guild where
         , guildRoles        ::                [Role]     -- ^ Array of 'Role' objects
         , guildEmojis       ::                [Emoji]    -- ^ Array of 'Emoji' objects
         }
-    | Unavailable 
+    | Unavailable
         { guildId :: {-# UNPACK #-} !Snowflake
         } deriving Show
 
@@ -84,7 +84,7 @@ module Network.Discord.Types.Guild where
   --   names, colors, and can be "pinned" to the side bar, causing their members to be listed separately.
   --   Roles are unique per guild, and can have separate permission profiles for the global context
   --   (guild) and channel context.
-  data Role = 
+  data Role =
       Role {
           roleID      :: {-# UNPACK #-} !Snowflake -- ^ The role id
         , roleName    :: String                    -- ^ The role name
@@ -107,7 +107,7 @@ module Network.Discord.Types.Guild where
       <*> o .: "managed"
       <*> o .: "mentionable"
     parseJSON _ = mzero
-  
+
   -- | VoiceRegion is only refrenced in Guild endpoints, will be moved when voice support is added
   data VoiceRegion =
       VoiceRegion
@@ -151,7 +151,7 @@ module Network.Discord.Types.Guild where
           <*> ((o .: "guild")   >>= (.: "id"))
           <*> ((o .: "channel") >>= (.: "id"))
     parseJSON _ = mzero
-  
+
   -- | Additional metadata about an invite.
   data InviteMeta =
     InviteMeta {
@@ -205,10 +205,10 @@ module Network.Discord.Types.Guild where
       <*> o .: "account"
       <*> o .: "synced_at"
     parseJSON _ = mzero
-  
+
   -- | Represents a third party account link.
   data IntegrationAccount =
-    Account 
+    Account
       { accountId   :: String -- ^ The id of the account.
       , accountName :: String -- ^ The name of the account.
       } deriving (Show)

@@ -28,7 +28,7 @@ module Network.Discord.Types.Channel where
     , userVerified :: Maybe Bool                -- ^ Whether the email on this account has
                                                 --   been verified.
     , userEmail    :: Maybe String              -- ^ The user's email.
-    } 
+    }
     | Webhook deriving (Show, Eq)
 
   instance FromJSON User where
@@ -69,7 +69,7 @@ module Network.Discord.Types.Channel where
         }
     -- | DM Channels represent a one-to-one conversation between two users, outside the scope
     --   of guilds
-    | DirectMessage 
+    | DirectMessage
         { channelId          :: Snowflake
         , channelRecipients  :: [User]    -- ^ The 'User' object(s) of the DM recipient(s).
         , channelLastMessage :: Snowflake
@@ -102,7 +102,7 @@ module Network.Discord.Types.Channel where
         _ -> mzero
 
   -- | Permission overwrites for a channel.
-  data Overwrite = Overwrite 
+  data Overwrite = Overwrite
     { overwriteId:: {-# UNPACK #-} !Snowflake -- ^ 'Role' or 'User' id
     , overWriteType:: String                  -- ^ Either "role" or "member
     , overwriteAllow:: Integer                -- ^ Allowed permission bit set
@@ -194,7 +194,7 @@ module Network.Discord.Types.Channel where
     } deriving (Show, Read, Eq)
 
   instance FromJSON Embed where
-    parseJSON (Object o) = 
+    parseJSON (Object o) =
       Embed <$> o .:? "title" .!= "Untitled"
             <*> o .:  "type"
             <*> o .:? "description" .!= ""
@@ -241,7 +241,7 @@ module Network.Discord.Types.Channel where
     parseJSON _ = mzero
 
   instance ToJSON Embed where
-    toJSON (Embed {..}) = object 
+    toJSON (Embed {..}) = object
       [ "title"       .= embedTitle
       , "type"        .= embedType
       , "description" .= embedDesc
@@ -259,7 +259,7 @@ module Network.Discord.Types.Channel where
             , "height" .= height
             , "width"  .= width
             ]) "thumbnail"
-        embed (Image url _ height width) = 
+        embed (Image url _ height width) =
           HM.alter (\_ -> Just $ object
             [ "url"    .= url
             , "height" .= height
@@ -271,7 +271,7 @@ module Network.Discord.Types.Channel where
             , "url"      .= url
             , "icon_url" .= icon
             ]) "author"
-        embed (Footer text icon _) = 
+        embed (Footer text icon _) =
           HM.alter (\_ -> Just $ object
             [ "text"     .= text
             , "icon_url" .= icon
@@ -296,10 +296,10 @@ module Network.Discord.Types.Channel where
   -- |Represents a part of an embed.
   data SubEmbed
     = Thumbnail
-        String 
-        String 
-        Integer 
-        Integer 
+        String
+        String
+        Integer
+        Integer
     | Video
         String
         Integer

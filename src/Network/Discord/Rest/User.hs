@@ -5,12 +5,12 @@ module Network.Discord.Rest.User
   (
     UserRequest(..)
   ) where
-    
+
     import Data.Aeson
     import Data.Hashable
     import Data.Monoid (mempty)
     import Data.Text as T
-    
+
     import Network.Discord.Rest.Prelude
     import Network.Discord.Types
     import Network.Discord.Rest.HTTP
@@ -19,7 +19,7 @@ module Network.Discord.Rest.User
     --   <https://discordapp.com/developers/docs/resources/user User API>
     data UserRequest a where
       -- | Returns the 'User' object of the requester's account. For OAuth2, this requires
-      --   the identify scope, which will return the object without an email, and optionally 
+      --   the identify scope, which will return the object without an email, and optionally
       --   the email scope, which returns the object with an email.
       GetCurrentUser       :: UserRequest User
       -- | Returns a 'User' for a given user ID
@@ -55,13 +55,13 @@ module Network.Discord.Rest.User
           go r@(GetCurrentUser) = makeRequest r
             $ Get (url /: "@me") mempty
 
-          go r@(GetUser user) = makeRequest r 
+          go r@(GetUser user) = makeRequest r
             $ Get (url // user ) mempty
 
-          go r@(ModifyCurrentUser patch) = makeRequest r 
+          go r@(ModifyCurrentUser patch) = makeRequest r
             $ Patch (url /: "@me")  (ReqBodyJson patch) mempty
 
-          go r@(GetCurrentUserGuilds range) = makeRequest r 
+          go r@(GetCurrentUserGuilds range) = makeRequest r
             $ Get url $ toQueryString range
 
           go r@(LeaveGuild guild) = makeRequest r
