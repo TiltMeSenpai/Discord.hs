@@ -60,7 +60,7 @@ library
                      , unordered-containers==0.2.*
                      , url==2.1.*
                      , vector>=0.10 && <0.13
-                     , websockets>=0.10.* && <0.11.0
+                     , websockets>=0.10 && <0.12.0
                      , req==0.2.*
                      , wuss==1.1.*
   ghc-options:         -Wall
