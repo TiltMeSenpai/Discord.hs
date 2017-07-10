@@ -34,7 +34,7 @@ library
                      , hslogger==1.2.*
                      , http-client==0.5.*
                      , mtl==2.2.*
-                     , req==0.2.*
+                     , req>=0.2.0 && <0.4
                      , stm==2.4.*
                      , text==1.2.*
                      , time>=1.6 && <1.9
